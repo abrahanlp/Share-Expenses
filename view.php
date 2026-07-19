@@ -19,8 +19,10 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         
         .form-control { width: 100%; padding: 8px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
         .btn:hover { background: var(--primary-hover); }
+        .btn-secondary { background: #10b981; }
+        .btn-secondary:hover { background: #059669; }
         
         .alert { padding: 10px; margin-bottom: 10px; text-align: center; border-radius: 5px; }
         .success { background: #d1fae5; color: #065f46; }
@@ -46,6 +48,9 @@
     <?php echo $message; ?>
 
     <?php if ($page === 'home'): ?>
+        <!-- ========================================== -->
+        <!-- DASHBOARD VIEW -->
+        <!-- ========================================== -->
         <div class="grid">
             <div class="card" id="form-section">
                 <h2><?php echo $expense_to_edit ? 'Edit Expense' : 'Add Expense'; ?></h2>
@@ -104,10 +109,13 @@
         </div>
 
         <div class="card">
-            <h2>History</h2>
-            <div style="overflow-x: auto;">
+            <!-- Title updated to accurately represent context -->
+            <h2>History (Last 365 Days)</h2>
+            <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
                 <table>
-                    <tr><th>Date</th><th>Concept</th><th>Category</th><th>Payer</th><th>Amount</th><th>Actions</th></tr>
+                    <thead style="position: sticky; top: 0; background: white; z-index: 1;">
+                        <tr><th>Date</th><th>Concept</th><th>Category</th><th>Payer</th><th>Amount</th><th>Actions</th></tr>
+                    </thead>
                     <?php while ($e = $recent_expenses->fetchArray(SQLITE3_ASSOC)): ?>
                     <tr>
                         <td><?php echo date('d/m/Y', strtotime($e['date'])); ?></td>
@@ -134,7 +142,7 @@
                         labels: Object.keys(catData), 
                         datasets: [{ 
                             data: Object.values(catData), 
-                            backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'] 
+                            backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'] 
                         }] 
                     },
                     options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
@@ -143,50 +151,79 @@
         </script>
 
     <?php elseif ($page === 'settings'): ?>
+        <!-- ========================================== -->
+        <!-- SETTINGS VIEW -->
+        <!-- ========================================== -->
         <div class="grid">
-            <!-- Manage Users Block -->
+            <!-- Manage Users Card -->
             <div class="card">
                 <h2>Manage Users</h2>
                 <form method="POST" action="index.php?page=settings">
                     <input type="hidden" name="action" value="update_users">
                     <label>User 1 Name</label>
-                    <input type="text" name="user1" class="form-control" value="<?php echo htmlspecialchars($users[0]); ?>" required>
+                    <input type="text" name="user1" class="form-control" value="<?php echo htmlspecialchars($u1); ?>" required>
                     
                     <label>User 2 Name</label>
-                    <input type="text" name="user2" class="form-control" value="<?php echo htmlspecialchars($users[1]); ?>" required>
+                    <input type="text" name="user2" class="form-control" value="<?php echo htmlspecialchars($u2); ?>" required>
                     
                     <button type="submit" class="btn">Update Users</button>
-                    <p style="font-size: 0.8rem; color: #6b7280; margin-top: 10px;">
-                        Updating a name will automatically update all their past expenses to keep the balance accurate.
-                    </p>
                 </form>
             </div>
 
-            <!-- Manage Categories Block -->
+            <!-- Dynamic Category Modification Form -->
             <div class="card">
-                <h2>Add New Category</h2>
+                <h2><?php echo $cat_to_edit ? 'Edit Category' : 'Add New Category'; ?></h2>
                 <form method="POST" action="index.php?page=settings">
-                    <input type="hidden" name="action" value="add_category">
+                    <input type="hidden" name="action" value="save_category">
+                    <?php if($cat_to_edit): ?>
+                        <input type="hidden" name="id" value="<?php echo $cat_to_edit['id']; ?>">
+                    <?php endif; ?>
+                    
                     <label>Category Name</label>
-                    <input type="text" name="cat_name" class="form-control" placeholder="e.g. Subscriptions" required>
-                    <button type="submit" class="btn">Add Category</button>
+                    <input type="text" name="cat_name" class="form-control" value="<?php echo $cat_to_edit ? htmlspecialchars($cat_to_edit['name']) : ''; ?>" placeholder="e.g. Subscriptions" required>
+                    
+                    <button type="submit" class="btn"><?php echo $cat_to_edit ? 'Update Category' : 'Add Category'; ?></button>
+                    <?php if($cat_to_edit): ?>
+                        <a href="index.php?page=settings" style="display:block; text-align:center; margin-top:10px; color:#666;">Cancel Edit</a>
+                    <?php endif; ?>
                 </form>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Current Categories</h2>
-            <table>
-                <tr><th>Name</th><th style="text-align:right;">Action</th></tr>
-                <?php foreach($categories as $cat): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($cat['name']); ?></td>
-                    <td style="text-align:right;">
-                        <a href="?delete_cat=<?php echo $cat['id']; ?>" class="actions del-link" onclick="return confirm('Delete this category?');">Delete</a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
+        <div class="grid">
+            <!-- Portability Engine Card -->
+            <div class="card">
+                <h2>CSV Import / Export</h2>
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:bold;">Export App Data</label>
+                    <a href="index.php?action=export_csv" class="btn btn-secondary">Download expenses.csv</a>
+                </div>
+                <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+                <form method="POST" action="index.php?page=settings" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="import_csv">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Import Data File</label>
+                    <p style="font-size:0.8rem; color:#6b7280; margin:0 0 10px 0;">Required column order: <code>Concept,Date,Paid_by,Category,Amount</code> (Date format: <code>DD-MM-YYYY</code>)</p>
+                    <input type="file" name="csv_file" accept=".csv" required style="margin-bottom:15px; display:block;">
+                    <button type="submit" class="btn">Process CSV Upload</button>
+                </form>
+            </div>
+
+            <!-- Categorization Catalog Management Table -->
+            <div class="card">
+                <h2>Categories</h2>
+                <table>
+                    <tr><th>Name</th><th style="text-align:right;">Actions</th></tr>
+                    <?php foreach($categories as $cat): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($cat['name']); ?></td>
+                        <td style="text-align:right;" class="actions">
+                            <a href="?page=settings&edit_cat=<?php echo $cat['id']; ?>" class="edit-link">Rename</a>
+                            <a href="?delete_cat=<?php echo $cat['id']; ?>" class="del-link" onclick="return confirm('Delete category? Historic entries will preserve text values.');">Delete</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
         </div>
     <?php endif; ?>
 </div>

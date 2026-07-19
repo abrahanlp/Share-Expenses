@@ -15,7 +15,7 @@ $db->exec("CREATE TABLE IF NOT EXISTS expenses (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
-// 2. Categories Table & Seed
+// 2. Categories Table & Updated Seed List
 $db->exec("CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE
@@ -23,7 +23,7 @@ $db->exec("CREATE TABLE IF NOT EXISTS categories (
 
 $cat_count = $db->querySingle("SELECT COUNT(*) FROM categories");
 if ($cat_count == 0) {
-    $default_cats = ['Food', 'Electricity', 'Water', 'Rent', 'Phone', 'Furniture', 'Travel', 'Other'];
+    $default_cats = ['Food', 'Teleco', 'Water', 'Light', 'Rent', 'Appliances', 'Travel', 'Delivery'];
     $stmt = $db->prepare("INSERT INTO categories (name) VALUES (:name)");
     foreach($default_cats as $cat) {
         $stmt->bindValue(':name', $cat);
