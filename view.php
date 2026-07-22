@@ -52,6 +52,27 @@
         <!-- DASHBOARD VIEW -->
         <!-- ========================================== -->
         
+        <?php 
+        // ----------------------------------------------------
+        // PRE-PROCESS FILTERED DATA FOR CHART AND TABLE
+        // We fetch the SQLite3Result into an array so we can 
+        // calculate the totals per user beforehand.
+        // ----------------------------------------------------
+        $expenses_list = [];
+        $filtered_totals = [$u1 => 0, $u2 => 0];
+        
+        if (isset($recent_expenses)) {
+            while ($e = $recent_expenses->fetchArray(SQLITE3_ASSOC)) {
+                $expenses_list[] = $e;
+                $payer = $e['paid_by'];
+                if (!isset($filtered_totals[$payer])) {
+                    $filtered_totals[$payer] = 0;
+                }
+                $filtered_totals[$payer] += $e['amount'];
+            }
+        }
+        ?>
+
         <div class="grid">
             <div class="card" id="form-section">
                 <h2><?php echo $expense_to_edit ? 'Edit Expense' : 'Add Expense'; ?></h2>
@@ -107,28 +128,35 @@
                     <?php echo $balance_text; ?>
                 </p>
 
-                <!-- Chart container (height increased slightly for the vertical legend) -->
-                <div style="height:250px; margin-top:20px;">
+                <!-- Filtered amounts paid by user -->
+                <div style="display: flex; justify-content: space-around; margin-top: 25px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                    <span style="font-size: 1.1rem; color: var(--text);"><strong><?php echo htmlspecialchars($u1); ?>:</strong> <?php echo number_format($filtered_totals[$u1] ?? 0, 2); ?> €</span>
+                    <span style="font-size: 1.1rem; color: var(--text);"><strong><?php echo htmlspecialchars($u2); ?>:</strong> <?php echo number_format($filtered_totals[$u2] ?? 0, 2); ?> €</span>
+                </div>
+
+                <!-- Chart container -->
+                <div style="height:230px; margin-top:20px;">
                     <canvas id="catChart"></canvas>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <!-- Filter form acting as the section header -->
-            <form method="GET" action="index.php" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+            <!-- Filter form acting as the section header (Auto-submits on change) -->
+            <form id="filterForm" method="GET" action="index.php" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
                 <strong style="margin-right: 10px; color: var(--text); font-size: 1.1rem;">Date Range:</strong>
                 
-                <!-- Added IDs to date inputs for the JavaScript logic -->
-                <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                <!-- Added onchange="this.form.submit()" to auto-filter when inputs change -->
+                <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control" style="width: auto; margin: 0;" onchange="this.form.submit()">
                 <span style="color: #6b7280;">to</span>
-                <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control" style="width: auto; margin: 0;" onchange="this.form.submit()">
                 
                 <!-- Dropdown for quick date range selection -->
                 <select id="quick_ranges" onchange="applyQuickRange()" class="form-control" style="width: auto; margin: 0; cursor: pointer;">
                     <option value="">Custom...</option>
                     <option value="this_month">This month</option>
                     <option value="last_6_months">Last 6 month</option>
+                    <option value="last_year">Last year</option>
                     <?php 
                     // Safely loop through available years if the array exists
                     if (isset($available_years)) {
@@ -140,9 +168,6 @@
                     }
                     ?>
                 </select>
-
-                <button type="submit" class="btn" style="width: auto; padding: 8px 20px; margin: 0;">Filter</button>
-                <a href="index.php" style="text-decoration: none; color: #6b7280; font-size: 0.9rem; margin-left: 10px;">Reset</a>
             </form>
 
             <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
@@ -150,7 +175,8 @@
                     <thead style="position: sticky; top: 0; background: white; z-index: 1;">
                         <tr><th>Date</th><th>Concept</th><th>Category</th><th>Payer</th><th>Amount</th><th>Actions</th></tr>
                     </thead>
-                    <?php while ($e = $recent_expenses->fetchArray(SQLITE3_ASSOC)): ?>
+                    <!-- Using the pre-processed array instead of the raw SQLite3Result -->
+                    <?php foreach ($expenses_list as $e): ?>
                     <tr>
                         <td><?php echo date('d/m/Y', strtotime($e['date'])); ?></td>
                         <td><?php echo htmlspecialchars($e['concept']); ?></td>
@@ -162,7 +188,7 @@
                             <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </table>
             </div>
         </div>
@@ -187,6 +213,9 @@
                 } else if (range === 'last_6_months') {
                     start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
                     end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                } else if (range === 'last_year') {
+                    start = new Date(today.getFullYear() - 1, 0, 1); // Jan 1st last year
+                    end = new Date(today.getFullYear() - 1, 11, 31); // Dec 31st last year
                 } else {
                     // A specific year was selected
                     start = new Date(range, 0, 1); // January 1st
@@ -203,6 +232,9 @@
 
                 startInput.value = formatDate(start);
                 endInput.value = formatDate(end);
+                
+                // Automatically submit form when a range is selected
+                startInput.form.submit();
             }
 
             // ----------------------------------------------------
