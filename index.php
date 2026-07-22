@@ -279,4 +279,15 @@ if ($page === 'home') {
     $recent_expenses = $stmt_recent->execute();
 }
 
+// ==========================================
+// FETCH YEARS FOR FILTER DROPDOWN
+// ==========================================
+$res_years = $db->query('SELECT DISTINCT strftime("%Y", "date") as year FROM expenses WHERE "date" IS NOT NULL ORDER BY year DESC');
+$available_years = [];
+while ($row = $res_years->fetchArray(SQLITE3_ASSOC)) {
+    if (!empty($row['year'])) {
+        $available_years[] = $row['year'];
+    }
+}
+
 require_once __DIR__ . '/view.php';

@@ -107,8 +107,8 @@
                     <?php echo $balance_text; ?>
                 </p>
 
-                <h2 style="margin-top: 25px;">Stats (Filtered)</h2>
-                <div style="height:200px; margin-top:20px;">
+                <!-- Chart container (height increased slightly for the vertical legend) -->
+                <div style="height:250px; margin-top:20px;">
                     <canvas id="catChart"></canvas>
                 </div>
             </div>
@@ -118,9 +118,29 @@
             <!-- Filter form acting as the section header -->
             <form method="GET" action="index.php" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
                 <strong style="margin-right: 10px; color: var(--text); font-size: 1.1rem;">Date Range:</strong>
-                <input type="date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                
+                <!-- Added IDs to date inputs for the JavaScript logic -->
+                <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control" style="width: auto; margin: 0;">
                 <span style="color: #6b7280;">to</span>
-                <input type="date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                
+                <!-- Dropdown for quick date range selection -->
+                <select id="quick_ranges" onchange="applyQuickRange()" class="form-control" style="width: auto; margin: 0; cursor: pointer;">
+                    <option value="">Custom...</option>
+                    <option value="this_month">This month</option>
+                    <option value="last_6_months">Last 6 month</option>
+                    <?php 
+                    // Safely loop through available years if the array exists
+                    if (isset($available_years)) {
+                        foreach($available_years as $year): 
+                    ?>
+                        <option value="<?php echo htmlspecialchars($year); ?>"><?php echo htmlspecialchars($year); ?></option>
+                    <?php 
+                        endforeach; 
+                    }
+                    ?>
+                </select>
+
                 <button type="submit" class="btn" style="width: auto; padding: 8px 20px; margin: 0;">Filter</button>
                 <a href="index.php" style="text-decoration: none; color: #6b7280; font-size: 0.9rem; margin-left: 10px;">Reset</a>
             </form>
@@ -148,6 +168,46 @@
         </div>
 
         <script>
+            // ----------------------------------------------------
+            // Quick Range Selection Logic
+            // ----------------------------------------------------
+            function applyQuickRange() {
+                const range = document.getElementById('quick_ranges').value;
+                const startInput = document.getElementById('start_date');
+                const endInput = document.getElementById('end_date');
+                
+                if (!range) return; // Do nothing if "Custom..." is selected
+
+                const today = new Date();
+                let start, end;
+
+                if (range === 'this_month') {
+                    start = new Date(today.getFullYear(), today.getMonth(), 1);
+                    end = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Last day of current month
+                } else if (range === 'last_6_months') {
+                    start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+                    end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                } else {
+                    // A specific year was selected
+                    start = new Date(range, 0, 1); // January 1st
+                    end = new Date(range, 11, 31); // December 31st
+                }
+
+                // Helper to format Date objects to YYYY-MM-DD
+                const formatDate = (d) => {
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                };
+
+                startInput.value = formatDate(start);
+                endInput.value = formatDate(end);
+            }
+
+            // ----------------------------------------------------
+            // Chart Initialization
+            // ----------------------------------------------------
             const catData = <?php echo json_encode($chart_categories); ?>;
             if(Object.keys(catData).length > 0) {
                 new Chart(document.getElementById('catChart'), {
@@ -159,7 +219,20 @@
                             backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'] 
                         }] 
                     },
-                    options: { maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                    options: { 
+                        maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { 
+                                display: true,
+                                position: 'right', // Forces vertical layout for the legend
+                                align: 'center',
+                                labels: {
+                                    boxWidth: 15,
+                                    padding: 12
+                                }
+                            } 
+                        } 
+                    }
                 });
             }
         </script>
