@@ -51,11 +51,15 @@
         <!-- ========================================== -->
         <!-- DASHBOARD VIEW -->
         <!-- ========================================== -->
+        
         <div class="grid">
             <div class="card" id="form-section">
                 <h2><?php echo $expense_to_edit ? 'Edit Expense' : 'Add Expense'; ?></h2>
                 <form method="POST" action="index.php">
                     <input type="hidden" name="action" value="save_expense">
+                    <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>">
+                    <input type="hidden" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>">
+                    
                     <?php if($expense_to_edit): ?>
                         <input type="hidden" name="id" value="<?php echo $expense_to_edit['id']; ?>">
                     <?php endif; ?>
@@ -92,16 +96,18 @@
                     
                     <button type="submit" class="btn"><?php echo $expense_to_edit ? 'Update Expense' : 'Save Expense'; ?></button>
                     <?php if($expense_to_edit): ?>
-                        <a href="index.php" style="display:block; text-align:center; margin-top:10px; color:#666;">Cancel Edit</a>
+                        <a href="index.php?start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" style="display:block; text-align:center; margin-top:10px; color:#666;">Cancel Edit</a>
                     <?php endif; ?>
                 </form>
             </div>
 
             <div class="card">
-                <h2>Stats</h2>
-                <p style="background: #e0e7ff; padding: 15px; border-radius: 8px; text-align: center; font-size: 1.1rem;">
+                <!-- User Balance Text (Calculated globally) -->
+                <p style="background: #e0e7ff; color: #3730a3; padding: 15px; border-radius: 8px; text-align: center; font-size: 1.4rem; font-weight: bold; margin-top: 0; border: 1px solid #c7d2fe;">
                     <?php echo $balance_text; ?>
                 </p>
+
+                <h2 style="margin-top: 25px;">Stats (Filtered)</h2>
                 <div style="height:200px; margin-top:20px;">
                     <canvas id="catChart"></canvas>
                 </div>
@@ -109,8 +115,16 @@
         </div>
 
         <div class="card">
-            <!-- Title updated to accurately represent context -->
-            <h2>History (Last 365 Days)</h2>
+            <!-- Filter form acting as the section header -->
+            <form method="GET" action="index.php" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+                <strong style="margin-right: 10px; color: var(--text); font-size: 1.1rem;">Date Range:</strong>
+                <input type="date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                <span style="color: #6b7280;">to</span>
+                <input type="date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control" style="width: auto; margin: 0;">
+                <button type="submit" class="btn" style="width: auto; padding: 8px 20px; margin: 0;">Filter</button>
+                <a href="index.php" style="text-decoration: none; color: #6b7280; font-size: 0.9rem; margin-left: 10px;">Reset</a>
+            </form>
+
             <div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">
                 <table>
                     <thead style="position: sticky; top: 0; background: white; z-index: 1;">
@@ -124,8 +138,8 @@
                         <td><strong><?php echo htmlspecialchars($e['paid_by']); ?></strong></td>
                         <td><strong><?php echo number_format($e['amount'], 2); ?> €</strong></td>
                         <td class="actions">
-                            <a href="?edit=<?php echo $e['id']; ?>" class="edit-link">Edit</a>
-                            <a href="?delete=<?php echo $e['id']; ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
+                            <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="edit-link">Edit</a>
+                            <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
                         </td>
                     </tr>
                     <?php endwhile; ?>
@@ -202,7 +216,7 @@
                 <form method="POST" action="index.php?page=settings" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="import_csv">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">Import Data File</label>
-                    <p style="font-size:0.8rem; color:#6b7280; margin:0 0 10px 0;">Required column order: <code>Concept,Date,Paid_by,Category,Amount</code> (Date format: <code>DD-MM-YYYY</code>)</p>
+                    <p style="font-size:0.8rem; color:#6b7280; margin:0 0 10px 0;">Required column order: <code>Concept,Date,Paid_by,Category,Amount</code> (Date format: <code>DD-MM-YYYY</code> or <code>YYYY-MM-DD</code>)</p>
                     <input type="file" name="csv_file" accept=".csv" required style="margin-bottom:15px; display:block;">
                     <button type="submit" class="btn">Process CSV Upload</button>
                 </form>
