@@ -42,7 +42,32 @@ if ($user_count == 0) {
     $db->exec("INSERT INTO users (id, name) VALUES (1, 'User1'), (2, 'User2')");
 }
 
-if (!file_exists(__DIR__ . '/.htaccess')) {
-    $rules = "Options -Indexes\nRedirectMatch 403 \.db$\n";
-    file_put_contents(__DIR__ . '/.htaccess', $rules);
+$htaccess_file = __DIR__ . '/.htaccess';
+$htpasswd_file = __DIR__ . '/.htpasswd';
+
+// 1. Generate the .htpasswd file with a default user and password
+if (!file_exists($htpasswd_file)) {
+    $username = 'admin';
+    $password = '1234'; // IMPORTANT: Change this immediately after setup
+    
+    // Apache 2.4+ natively supports PHP's standard bcrypt hashes
+    $hash = password_hash($password, PASSWORD_BCRYPT);
+    file_put_contents($htpasswd_file, $username . ':' . $hash . "\n");
+}
+
+// 2. Generate the .htaccess file with the required security rules
+if (!file_exists($htaccess_file)) {
+    // AuthUserFile requires an absolute file path on the server to function
+    $absolute_path = $htpasswd_file;
+    
+    $rules = "Options -Indexes\n";
+    $rules .= "RedirectMatch 403 \.db$\n\n";
+    
+    // HTTP Basic Authentication rules
+    $rules .= "AuthType Basic\n";
+    $rules .= "AuthName \"Restricted Area\"\n";
+    $rules .= "AuthUserFile \"{$absolute_path}\"\n";
+    $rules .= "Require valid-user\n";
+    
+    file_put_contents($htaccess_file, $rules);
 }

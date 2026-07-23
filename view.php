@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Prevent search engines from indexing or following links on this page -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <title>Household Expense Tracker</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

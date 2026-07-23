@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Prevent search engines from indexing or following links on this page -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <title>Household Expense Tracker - Statistics</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -93,13 +95,13 @@
                 datasets: [{
                     label: 'Total Expenses (€)',
                     data: yearlyTotals,
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)', // Light purple fill
-                    borderColor: '#4f46e5',                     // Solid purple line
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)', 
+                    borderColor: '#4f46e5',                     
                     borderWidth: 2,
                     pointBackgroundColor: '#4f46e5',
                     pointRadius: 4,
                     fill: true,
-                    tension: 0.3 // Adds a slight curve to the line
+                    tension: 0
                 }]
             },
             options: {
@@ -125,7 +127,7 @@
             borderWidth: 2,
             pointRadius: 4,
             fill: false,
-            tension: 0.3
+            tension: 0
         };
     });
 
@@ -140,7 +142,7 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: { grid: { display: false } },
-                    y: { beginAtZero: true } // Removed 'stacked: true' for standard line behavior
+                    y: { beginAtZero: true } 
                 },
                 plugins: {
                     legend: { position: 'right' }
