@@ -250,7 +250,7 @@ if (isset($_GET['edit_cat'])) {
 }
 
 // ==========================================
-// DATA COMPILATION FOR GRAPH & HISTORY
+// DATA COMPILATION FOR HOME & STATISTICS
 // ==========================================
 if ($page === 'home') {
     // 1. BALANCE CALCULATION (Independent of date filter)
@@ -287,6 +287,90 @@ if ($page === 'home') {
     $stmt_recent->bindValue(':start_date', $start_date, SQLITE3_TEXT);
     $stmt_recent->bindValue(':end_date', $end_date_query, SQLITE3_TEXT);
     $recent_expenses = $stmt_recent->execute();
+
+} elseif ($page === 'statistics') {
+    // Fetch available years descending
+    $res_years = $db->query('SELECT DISTINCT strftime("%Y", "date") as year FROM expenses WHERE "date" IS NOT NULL ORDER BY year DESC');
+    $years_list = [];
+    while ($row = $res_years->fetchArray(SQLITE3_ASSOC)) {
+        if (!empty($row['year'])) {
+            $years_list[] = $row['year'];
+        }
+    }
+
+    // Overall yearly totals for Chart 1 (Ascending)
+    $res_yearly_totals = $db->query('SELECT strftime("%Y", "date") as year, SUM(amount) as total FROM expenses WHERE "date" IS NOT NULL GROUP BY year ORDER BY year ASC');
+    $chart_years = [];
+    $chart_year_totals = [];
+    $yearly_aggregate = [];
+    while ($row = $res_yearly_totals->fetchArray(SQLITE3_ASSOC)) {
+        $chart_years[] = $row['year'];
+        $chart_year_totals[] = round($row['total'], 2);
+        $yearly_aggregate[$row['year']] = $row['total'];
+    }
+
+    // Yearly category breakdown for Chart 2 (Stacked Bar)
+    $res_yearly_cats = $db->query('SELECT strftime("%Y", "date") as year, category, SUM(amount) as total FROM expenses WHERE "date" IS NOT NULL GROUP BY year, category ORDER BY year ASC');
+    $yearly_cat_data = [];
+    $all_cats_set = [];
+    while ($row = $res_yearly_cats->fetchArray(SQLITE3_ASSOC)) {
+        $y = $row['year'];
+        $c = $row['category'];
+        $yearly_cat_data[$y][$c] = round($row['total'], 2);
+        $all_cats_set[$c] = true;
+    }
+    $unique_categories = array_keys($all_cats_set);
+
+    // Per-year card data
+    $year_cards_data = [];
+    foreach ($years_list as $yr) {
+        $stmt_uy = $db->prepare('SELECT paid_by, SUM(amount) as total FROM expenses WHERE strftime("%Y", "date") = :year GROUP BY paid_by');
+        $stmt_uy->bindValue(':year', $yr, SQLITE3_TEXT);
+        $res_uy = $stmt_uy->execute();
+        $yr_user_totals = [$u1 => 0, $u2 => 0];
+        while ($row = $res_uy->fetchArray(SQLITE3_ASSOC)) {
+            $yr_user_totals[$row['paid_by']] = $row['total'];
+        }
+
+        $t1_yr = $yr_user_totals[$u1] ?? 0;
+        $t2_yr = $yr_user_totals[$u2] ?? 0;
+        $diff_yr = $t1_yr - $t2_yr;
+        
+        if ($diff_yr > 0) {
+            $yr_balance_text = "<strong>$u1</strong> +" . number_format($diff_yr, 2) . "€";
+        } elseif ($diff_yr < 0) {
+            $yr_balance_text = "<strong>$u2</strong> +" . number_format(abs($diff_yr), 2) . "€";
+        } else {
+            $yr_balance_text = "0.00€";
+        }
+
+        $stmt_cy = $db->prepare('SELECT category, SUM(amount) as total FROM expenses WHERE strftime("%Y", "date") = :year GROUP BY category ORDER BY total DESC');
+        $stmt_cy->bindValue(':year', $yr, SQLITE3_TEXT);
+        $res_cy = $stmt_cy->execute();
+        $yr_cat_chart = [];
+        while ($row = $res_cy->fetchArray(SQLITE3_ASSOC)) {
+            $yr_cat_chart[$row['category']] = round($row['total'], 2);
+        }
+
+        $prev_yr = (string)(intval($yr) - 1);
+        $next_yr = (string)(intval($yr) + 1);
+        
+        $current_total = $yearly_aggregate[$yr] ?? 0;
+        $prev_total = $yearly_aggregate[$prev_yr] ?? null;
+        $next_total = $yearly_aggregate[$next_yr] ?? null;
+
+        $year_cards_data[$yr] = [
+            'user_totals' => $yr_user_totals,
+            'balance_text' => $yr_balance_text,
+            'cat_chart' => $yr_cat_chart,
+            'total' => $current_total,
+            'prev_diff' => $prev_total !== null ? $current_total - $prev_total : null,
+            'next_diff' => $next_total !== null ? $current_total - $next_total : null,
+        ];
+    }
+
+    require_once __DIR__ . '/statistics.php';
+    exit;
 }
 
 // ==========================================

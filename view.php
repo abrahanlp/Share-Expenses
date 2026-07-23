@@ -13,6 +13,7 @@
     <h1>Household Expenses</h1>
     <nav>
         <a href="index.php" class="<?php echo $page === 'home' ? 'active' : ''; ?>">Dashboard</a>
+        <a href="index.php?page=statistics" class="<?php echo $page === 'statistics' ? 'active' : ''; ?>">Statistics</a>
         <a href="index.php?page=settings" class="<?php echo $page === 'settings' ? 'active' : ''; ?>">Settings</a>
     </nav>
 </header>
