@@ -255,9 +255,9 @@ if ($page === 'home') {
     $diff = $t1 - $t2;
     
     if ($diff > 0) {
-        $balance_text = "<strong>$u1</strong> +" . number_format($diff / 2, 2) . "€";
+        $balance_text = "<strong>$u1</strong> +" . number_format($diff, 2) . "€";
     } elseif ($diff < 0) {
-        $balance_text = "<strong>$u2</strong> +" . number_format(abs($diff) / 2, 2) . "€";
+        $balance_text = "<strong>$u2</strong> +" . number_format(abs($diff), 2) . "€";
     } else {
         $balance_text = "0.00€";
     }
