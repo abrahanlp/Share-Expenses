@@ -27,14 +27,24 @@ while ($row = $res_dates->fetchArray(SQLITE3_ASSOC)) {
 }
 
 $page = $_GET['page'] ?? 'home';
-$start_date = !empty($_REQUEST['start_date']) ? $_REQUEST['start_date'] : date('Y-m-d', strtotime('-1 year'));
-$end_date = !empty($_REQUEST['end_date']) ? $_REQUEST['end_date'] : date('Y-m-d');
+
+$raw_start = $_REQUEST['start_date'] ?? '';
+if ($raw_start === 'all') {
+    $min_date = $db->querySingle('SELECT MIN("date") FROM expenses');
+    $start_date = $min_date ? $min_date : '2000-01-01';
+    $max_date = $db->querySingle('SELECT MAX("date") FROM expenses');
+    $end_date = $max_date ? max($max_date, date('Y-m-d')) : date('Y-m-d');
+    $sd_param = '&start_date=all';
+    $ed_param = '&end_date=' . urlencode($end_date);
+} else {
+    $start_date = !empty($raw_start) ? $raw_start : date('Y-m-d', strtotime('-1 year'));
+    $end_date = !empty($_REQUEST['end_date']) ? $_REQUEST['end_date'] : date('Y-m-d');
+    $sd_param = '&start_date=' . urlencode($start_date);
+    $ed_param = '&end_date=' . urlencode($end_date);
+}
+
 // Ensure the end date includes the whole day up to midnight
 $end_date_query = $end_date . ' 23:59:59';
-
-// Persist parameters for redirects
-$sd_param = '&start_date=' . urlencode($start_date);
-$ed_param = '&end_date=' . urlencode($end_date);
 
 // Fetch dynamic users
 $users = [];

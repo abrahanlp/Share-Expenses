@@ -26,6 +26,8 @@
         // ----------------------------------------------------
         // PRE-PROCESS FILTERED DATA FOR CHART AND TABLE
         // ----------------------------------------------------
+        $effective_start_date = (isset($_GET['start_date']) && $_GET['start_date'] === 'all') ? 'all' : $start_date;
+        
         $expenses_list = [];
         $filtered_totals = [$u1 => 0, $u2 => 0];
         
@@ -46,7 +48,7 @@
                 <h2><?php echo $expense_to_edit ? 'Edit Expense' : 'Add Expense'; ?></h2>
                 <form method="POST" action="index.php">
                     <input type="hidden" name="action" value="save_expense">
-                    <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>">
+                    <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($effective_start_date); ?>">
                     <input type="hidden" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>">
                     
                     <?php if($expense_to_edit): ?>
@@ -85,7 +87,7 @@
                     
                     <button type="submit" class="btn"><?php echo $expense_to_edit ? 'Update Expense' : 'Save Expense'; ?></button>
                     <?php if($expense_to_edit): ?>
-                        <a href="index.php?start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="cancel-link">Cancel Edit</a>
+                        <a href="index.php?start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="cancel-link">Cancel Edit</a>
                     <?php endif; ?>
                 </form>
             </div>
@@ -132,6 +134,7 @@
                         endforeach; 
                     }
                     ?>
+                    <option value="all" <?php echo (isset($_GET['start_date']) && $_GET['start_date'] === 'all') ? 'selected' : ''; ?>>All times</option>
                 </select>
             </form>
 
@@ -156,8 +159,8 @@
                             <td><strong><?php echo htmlspecialchars($e['paid_by']); ?></strong></td>
                             <td><strong><?php echo number_format($e['amount'], 2); ?> €</strong></td>
                             <td class="actions">
-                                <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="edit-link">Edit</a>
-                                <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
+                                <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="edit-link">Edit</a>
+                                <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -170,11 +173,16 @@
             // Date Filter Logic
             function applyQuickRange() {
                 const range = document.getElementById('quick_ranges').value;
+                if (!range) return;
+
+                if (range === 'all') {
+                    window.location.href = 'index.php?start_date=all';
+                    return;
+                }
+
                 const startInput = document.getElementById('start_date');
                 const endInput = document.getElementById('end_date');
                 
-                if (!range) return;
-
                 const today = new Date();
                 let start, end;
 
