@@ -48,7 +48,7 @@ $htpasswd_file = __DIR__ . '/.htpasswd';
 // 1. Generate the .htpasswd file with a default user and password
 if (!file_exists($htpasswd_file)) {
     $username = 'admin';
-    $password = '1234'; // IMPORTANT: Change this immediately after setup
+    $password = 'admin'; // IMPORTANT: Change this immediately after setup
     
     // Apache 2.4+ natively supports PHP's standard bcrypt hashes
     $hash = password_hash($password, PASSWORD_BCRYPT);

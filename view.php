@@ -324,6 +324,28 @@
                 </table>
             </div>
         </div>
+
+        <!-- APP SECURITY CARD -->
+        <div class="card" style="margin-bottom: 25px;">
+            <h2>App Login Credentials</h2>
+            <p class="text-muted" style="margin-bottom: 15px;">
+                Change the master username and password used to access this application. 
+                <br><strong>Note:</strong> Immediately after updating, your browser will prompt you to log in again with the new credentials.
+            </p>
+            
+            <form method="POST" action="index.php?page=settings" style="max-width: 400px;">
+                <input type="hidden" name="action" value="update_credentials">
+                
+                <label>New Username</label>
+                <input type="text" name="new_username" class="form-control" placeholder="e.g. admin" required>
+                
+                <label>New Password</label>
+                <input type="password" name="new_password" class="form-control" required>
+                
+                <button type="submit" class="btn">Update Credentials</button>
+            </form>
+        </div>
+        
     <?php endif; ?>
 </div>
 

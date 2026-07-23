@@ -69,8 +69,12 @@ while ($row = $res_cats->fetchArray(SQLITE3_ASSOC)) {
     $categories[] = $row;
 }
 
-if (isset($_GET['status']) && $_GET['status'] === 'imported') {
-    $message = "<div class='alert success'>CSV Data imported successfully!</div>";
+if (isset($_GET['status'])) {
+    if ($_GET['status'] === 'imported') {
+        $message = "<div class='alert success'>CSV Data imported successfully!</div>";
+    } elseif ($_GET['status'] === 'credentials_updated') {
+        $message = "<div class='alert success'>Login credentials updated! You are using your new access details.</div>";
+    }
 }
 
 // ==========================================
@@ -98,6 +102,27 @@ if (isset($_GET['action']) && $_GET['action'] === 'export_csv') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    // UPDATE APP CREDENTIALS (.htpasswd)
+    if ($action === 'update_credentials') {
+        $new_username = trim($_POST['new_username']);
+        $new_password = $_POST['new_password'];
+
+        if (!empty($new_username) && !empty($new_password)) {
+            $htpasswd_file = __DIR__ . '/.htpasswd';
+            
+            // Hash the new password and write it to the file
+            $hash = password_hash($new_password, PASSWORD_BCRYPT);
+            file_put_contents($htpasswd_file, $new_username . ':' . $hash . "\n");
+            
+            // Redirecting will immediately trigger a 401 Unauthorized prompt in the browser 
+            // because the old cached password is no longer valid. This is expected.
+            header("Location: index.php?page=settings&status=credentials_updated");
+            exit;
+        } else {
+            $message = "<div class='alert error'>Username and password cannot be empty.</div>";
+        }
+    }
+    
     // ADD OR EDIT EXPENSE
     if ($action === 'save_expense') {
         $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
