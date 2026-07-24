@@ -196,8 +196,8 @@
                     start = new Date(today.getFullYear(), today.getMonth() - 5, 1);
                     end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                 } else if (range === 'last_year') {
-                    start = new Date(today.getFullYear() - 1, 0, 1); 
-                    end = new Date(today.getFullYear() - 1, 11, 31); 
+                    start = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()); 
+                    end = new Date(today);
                 } else {
                     start = new Date(range, 0, 1); 
                     end = new Date(range, 11, 31); 
@@ -345,7 +345,7 @@
                 <button type="submit" class="btn">Update Credentials</button>
             </form>
         </div>
-        
+
     <?php endif; ?>
 </div>
 
