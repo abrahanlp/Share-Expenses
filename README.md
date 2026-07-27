@@ -35,13 +35,18 @@ This application is designed to be as "plug-and-play" as possible, requiring no 
 The application is divided into three main sections, accessible via the top navigation bar:
 
 ### 1. Dashboard
+![Share expenses Dashboard](/img/Main.png)
+
 *   **Add/Edit Expenses:** Use the form on the left to input new expenses. Select the concept, category, date, amount, and who paid for it.
 *   **Balance Calculation:** The app automatically calculates who owes whom based on total expenditures and displays the current balance.
 *   **Data Filtering:** Use the date inputs or quick ranges (e.g., "This Month", "Last Year" - which shows a rolling 365 days, or "All Times") to filter the expense list and update the category doughnut chart dynamically.
 
 ### 2. Statistics
-*   **Visual Trends:** View straight-line graphs showing your total household expenses and individual category expenses over time.
+*   **Yearly Trends:** View straight-line graphs showing your total household expenses and individual category expenses over time.
+![Yearly trends](/img/Statistic1.png)
+
 *   **Yearly Breakdown:** Scroll down to see distinct cards for each year. These cards show total spent, balance differences between the two users for that specific year, and a comparison against the previous and next years.
+![Yearly Breakdown](/img/Statistic2.png)
 
 ### 3. Settings
 *   **Manage Users:** Change the display names of the two users splitting the expenses.

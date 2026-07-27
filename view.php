@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Prevent search engines from indexing or following links on this page -->
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
-    <title>Household Expense Tracker</title>
+    <title>Share Expense Tracker</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <header>
-    <h1>Household Expenses</h1>
+    <h1>Share Expenses</h1>
     <nav>
         <a href="index.php" class="<?php echo $page === 'home' ? 'active' : ''; ?>">Dashboard</a>
         <a href="index.php?page=statistics" class="<?php echo $page === 'statistics' ? 'active' : ''; ?>">Statistics</a>
