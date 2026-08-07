@@ -22,17 +22,19 @@
 
 <div class="container">
     <!-- 1. Full-width Yearly Total Expenses Chart (Line) -->
-    <div class="card" style="margin-bottom: 25px;">
+    <div class="card" style="margin-bottom: 20px;">
         <h2>Total Expenses by Year</h2>
-        <div style="height: 350px; position: relative;">
+        <!-- Replaced hardcoded height with responsive chart-lg class -->
+        <div class="chart-container chart-lg">
             <canvas id="yearlyTotalChart"></canvas>
         </div>
     </div>
 
     <!-- 2. Full-width Yearly Category Expenses Chart (Multi-Line) -->
-    <div class="card" style="margin-bottom: 25px;">
+    <div class="card" style="margin-bottom: 20px;">
         <h2>Expenses by Category per Year</h2>
-        <div style="height: 400px; position: relative;">
+        <!-- Replaced hardcoded height with responsive chart-lg class -->
+        <div class="chart-container chart-lg">
             <canvas id="yearlyCategoryChart"></canvas>
         </div>
     </div>
@@ -42,9 +44,9 @@
     <?php foreach ($years_list as $yr): 
         $data = $year_cards_data[$yr];
     ?>
-        <div class="card" style="margin-bottom: 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">
-                <h3 style="margin: 0; font-size: 1.5rem; color: #4f46e5;"><?php echo $yr; ?></h3>
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; gap: 10px;">
+                <h3 style="margin: 0; font-size: 1.5rem; color: var(--primary);"><?php echo $yr; ?></h3>
                 <div style="display: flex; gap: 20px; font-size: 0.95rem; flex-wrap: wrap;">
                     <span><strong>Total Spent:</strong> <?php echo number_format($data['total'], 2); ?> €</span>
                     <?php if ($data['prev_diff'] !== null): ?>
@@ -64,17 +66,19 @@
                 </div>
             </div>
 
-            <div class="grid" style="align-items: center;">
+            <!-- This grid will now auto-stack on mobile thanks to the updated CSS -->
+            <div class="grid" style="align-items: center; margin-bottom: 0;">
                 <div>
                     <p class="balance-alert" style="margin-top: 0;">
                         <?php echo $data['balance_text']; ?>
                     </p>
-                    <div class="user-totals" style="margin-bottom: 20px;">
+                    <div class="user-totals" style="margin-bottom: 20px; border-bottom: none;">
                         <span><strong><?php echo htmlspecialchars($u1); ?>:</strong> <?php echo number_format($data['user_totals'][$u1] ?? 0, 2); ?> €</span>
                         <span><strong><?php echo htmlspecialchars($u2); ?>:</strong> <?php echo number_format($data['user_totals'][$u2] ?? 0, 2); ?> €</span>
                     </div>
                 </div>
-                <div class="chart-container" style="height: 250px;">
+                <!-- Replaced hardcoded height with responsive chart-md class -->
+                <div class="chart-container chart-md" style="margin-top: 0;">
                     <canvas id="catChart_<?php echo $yr; ?>"></canvas>
                 </div>
             </div>

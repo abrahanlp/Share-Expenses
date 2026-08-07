@@ -46,70 +46,72 @@
         }
         ?>
 
-        <div class="grid">
-            <div class="card" id="form-section">
-                <h2><?php echo $expense_to_edit ? 'Edit Expense' : 'Add Expense'; ?></h2>
-                <form method="POST" action="index.php">
-                    <input type="hidden" name="action" value="save_expense">
-                    <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($effective_start_date); ?>">
-                    <input type="hidden" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>">
-                    
-                    <?php if($expense_to_edit): ?>
-                        <input type="hidden" name="id" value="<?php echo $expense_to_edit['id']; ?>">
-                    <?php endif; ?>
+        <div class="container">
+            <div class="grid">
+                <div class="card" id="form-section">
+                    <h2><?php echo $expense_to_edit ? 'Edit Expense' : 'Add Expense'; ?></h2>
+                    <form method="POST" action="index.php">
+                        <input type="hidden" name="action" value="save_expense">
+                        <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($effective_start_date); ?>">
+                        <input type="hidden" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>">
+                        
+                        <?php if($expense_to_edit): ?>
+                            <input type="hidden" name="id" value="<?php echo $expense_to_edit['id']; ?>">
+                        <?php endif; ?>
 
-                    <label>Concept</label>
-                    <input type="text" name="concept" class="form-control" value="<?php echo $expense_to_edit ? htmlspecialchars($expense_to_edit['concept']) : ''; ?>" required>
-                    
-                    <label>Category</label>
-                    <select name="category" class="form-control">
-                        <?php foreach($categories as $cat): ?>
-                            <option value="<?php echo htmlspecialchars($cat['name']); ?>" 
-                                <?php echo ($expense_to_edit && $expense_to_edit['category'] === $cat['name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($cat['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    
-                    <label>Date</label>
-                    <input type="date" name="date" class="form-control" value="<?php echo $expense_to_edit ? $expense_to_edit['date'] : date('Y-m-d'); ?>" required>
-                    
-                    <label>Amount (€)</label>
-                    <input type="number" name="amount" class="form-control" step="0.01" value="<?php echo $expense_to_edit ? $expense_to_edit['amount'] : ''; ?>" required>
-                    
-                    <label>Paid by</label>
-                    <div class="radio-group">
-                        <?php foreach($users as $p): ?>
-                            <label>
-                                <input type="radio" name="paid_by" value="<?php echo htmlspecialchars($p); ?>" 
-                                    <?php echo ($expense_to_edit && $expense_to_edit['paid_by'] === $p) ? 'checked' : ''; ?> required> 
-                                <?php echo htmlspecialchars($p); ?>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                    
-                    <button type="submit" class="btn"><?php echo $expense_to_edit ? 'Update Expense' : 'Save Expense'; ?></button>
-                    <?php if($expense_to_edit): ?>
-                        <a href="index.php?start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="cancel-link">Cancel Edit</a>
-                    <?php endif; ?>
-                </form>
-            </div>
-
-            <div class="card">
-                <!-- User Balance Text -->
-                <p class="balance-alert">
-                    <?php echo $balance_text; ?>
-                </p>
-
-                <!-- Filtered amounts paid by user -->
-                <div class="user-totals">
-                    <span><strong><?php echo htmlspecialchars($u1); ?>:</strong> <?php echo number_format($filtered_totals[$u1] ?? 0, 2); ?> €</span>
-                    <span><strong><?php echo htmlspecialchars($u2); ?>:</strong> <?php echo number_format($filtered_totals[$u2] ?? 0, 2); ?> €</span>
+                        <label>Concept</label>
+                        <input type="text" name="concept" class="form-control" value="<?php echo $expense_to_edit ? htmlspecialchars($expense_to_edit['concept']) : ''; ?>" required>
+                        
+                        <label>Category</label>
+                        <select name="category" class="form-control">
+                            <?php foreach($categories as $cat): ?>
+                                <option value="<?php echo htmlspecialchars($cat['name']); ?>" 
+                                    <?php echo ($expense_to_edit && $expense_to_edit['category'] === $cat['name']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($cat['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        
+                        <label>Date</label>
+                        <input type="date" name="date" class="form-control" value="<?php echo $expense_to_edit ? $expense_to_edit['date'] : date('Y-m-d'); ?>" required>
+                        
+                        <label>Amount (€)</label>
+                        <input type="number" name="amount" class="form-control" step="0.01" value="<?php echo $expense_to_edit ? $expense_to_edit['amount'] : ''; ?>" required>
+                        
+                        <label>Paid by</label>
+                        <div class="radio-group">
+                            <?php foreach($users as $p): ?>
+                                <label>
+                                    <input type="radio" name="paid_by" value="<?php echo htmlspecialchars($p); ?>" 
+                                        <?php echo ($expense_to_edit && $expense_to_edit['paid_by'] === $p) ? 'checked' : ''; ?> required> 
+                                    <?php echo htmlspecialchars($p); ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        
+                        <button type="submit" class="btn"><?php echo $expense_to_edit ? 'Update Expense' : 'Save Expense'; ?></button>
+                        <?php if($expense_to_edit): ?>
+                            <a href="index.php?start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="cancel-link">Cancel Edit</a>
+                        <?php endif; ?>
+                    </form>
                 </div>
 
-                <!-- Chart container -->
-                <div class="chart-container">
-                    <canvas id="catChart"></canvas>
+                <div class="card">
+                    <!-- User Balance Text -->
+                    <p class="balance-alert">
+                        <?php echo $balance_text; ?>
+                    </p>
+
+                    <!-- Filtered amounts paid by user -->
+                    <div class="user-totals">
+                        <span><strong><?php echo htmlspecialchars($u1); ?>:</strong> <?php echo number_format($filtered_totals[$u1] ?? 0, 2); ?> €</span>
+                        <span><strong><?php echo htmlspecialchars($u2); ?>:</strong> <?php echo number_format($filtered_totals[$u2] ?? 0, 2); ?> €</span>
+                    </div>
+
+                    <!-- Chart container -->
+                    <div class="chart-container">
+                        <canvas id="catChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -142,33 +144,35 @@
             </form>
 
             <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Concept</th>
-                            <th>Category</th>
-                            <th>Payer</th>
-                            <th>Amount</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($expenses_list as $e): ?>
-                        <tr>
-                            <td><?php echo date('d/m/Y', strtotime($e['date'])); ?></td>
-                            <td><?php echo htmlspecialchars($e['concept']); ?></td>
-                            <td><span class="badge"><?php echo htmlspecialchars($e['category']); ?></span></td>
-                            <td><strong><?php echo htmlspecialchars($e['paid_by']); ?></strong></td>
-                            <td><strong><?php echo number_format($e['amount'], 2); ?> €</strong></td>
-                            <td class="actions">
-                                <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="edit-link">Edit</a>
-                                <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Concept</th>
+                                <th>Category</th>
+                                <th>Payer</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($expenses_list as $e): ?>
+                            <tr>
+                                <td><?php echo date('d/m/Y', strtotime($e['date'])); ?></td>
+                                <td><?php echo htmlspecialchars($e['concept']); ?></td>
+                                <td><span class="badge"><?php echo htmlspecialchars($e['category']); ?></span></td>
+                                <td><strong><?php echo htmlspecialchars($e['paid_by']); ?></strong></td>
+                                <td><strong><?php echo number_format($e['amount'], 2); ?> €</strong></td>
+                                <td class="actions">
+                                    <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="edit-link">Edit</a>
+                                    <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -303,25 +307,27 @@
 
             <div class="card">
                 <h2>Categories</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th style="text-align:right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($categories as $cat): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($cat['name']); ?></td>
-                            <td style="text-align:right;" class="actions">
-                                <a href="?page=settings&edit_cat=<?php echo $cat['id']; ?>" class="edit-link">Rename</a>
-                                <a href="?delete_cat=<?php echo $cat['id']; ?>" class="del-link" onclick="return confirm('Delete category? Historic entries will preserve text values.');">Delete</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach($categories as $cat): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($cat['name']); ?></td>
+                                <td style="text-align:right;" class="actions">
+                                    <a href="?page=settings&edit_cat=<?php echo $cat['id']; ?>" class="edit-link">Rename</a>
+                                    <a href="?delete_cat=<?php echo $cat['id']; ?>" class="del-link" onclick="return confirm('Delete category? Historic entries will preserve text values.');">Delete</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

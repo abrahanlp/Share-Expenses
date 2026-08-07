@@ -28,6 +28,8 @@ header {
     justify-content: space-between; 
     align-items: center; 
     margin-bottom: 20px; 
+    flex-wrap: wrap; /* Added for mobile responsiveness */
+    gap: 15px;       /* Added to space items when wrapped */
 }
 
 header h1 { 
@@ -36,11 +38,17 @@ header h1 {
     color: var(--primary); 
 }
 
+/* Updated to flex so links wrap neatly on small screens */
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 nav a { 
     text-decoration: none; 
     color: var(--text); 
     font-weight: bold; 
-    margin-left: 15px; 
     padding: 8px 12px; 
     border-radius: 5px; 
     transition: background 0.2s, color 0.2s;
@@ -199,14 +207,16 @@ nav a:hover:not(.active) {
 }
 
 .table-container {
-    overflow-x: auto; 
+    overflow-x: auto; /* Enables horizontal scroll on mobile */
     max-height: 500px; 
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth mobile scrolling */
 }
 
 table { 
     width: 100%; 
     border-collapse: collapse; 
+    min-width: 600px; /* Forces scroll instead of squishing columns */
 }
 
 thead {
@@ -237,9 +247,15 @@ th, td {
    UTILITIES
    ========================================= */
 .chart-container {
+    position: relative;
     height: 230px; 
     margin-top: 20px;
+    width: 100%;
 }
+
+/* Specifically sized charts for the statistics page */
+.chart-lg { height: 350px; }
+.chart-md { height: 250px; }
 
 .text-muted {
     color: #6b7280;
@@ -250,4 +266,38 @@ th, td {
     border: 0; 
     border-top: 1px solid #eee; 
     margin: 20px 0;
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+@media (max-width: 768px) {
+    /* Stack header elements vertically */
+    header { 
+        flex-direction: column; 
+        text-align: center; 
+    }
+    
+    /* Center navigation links */
+    nav { 
+        justify-content: center; 
+    }
+
+    /* Stack grid columns on top of each other */
+    .grid { 
+        grid-template-columns: 1fr; 
+    }
+
+    /* Adjust filter form for easier tapping */
+    .filter-form { 
+        flex-direction: column; 
+        align-items: stretch; 
+    }
+    
+    .filter-form .form-control {
+        width: 100%;
+    }
+
+    /* Shrink large charts slightly to fit mobile screens better */
+    .chart-lg { height: 250px; }
 }
