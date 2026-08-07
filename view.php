@@ -299,8 +299,10 @@
                 <form method="POST" action="index.php?page=settings" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="import_csv">
                     <label style="display:block; font-weight:bold; margin-bottom:5px;">Import Data File</label>
-                    <p class="text-muted" style="margin:0 0 10px 0;">Required column order: <code>Concept,Date,Paid_by,Category,Amount</code><br>(Date format: <code>DD-MM-YYYY</code> or <code>YYYY-MM-DD</code>)</p>
-                    <input type="file" name="csv_file" accept=".csv" required style="margin-bottom:15px; display:block;">
+                    <!-- Added word-break to prevent the long code string from overflowing -->
+                    <p class="text-muted" style="margin:0 0 10px 0; word-break: break-word;">Required column order: <code>Concept,Date,Paid_by,Category,Amount</code><br>(Date format: <code>DD-MM-YYYY</code> or <code>YYYY-MM-DD</code>)</p>
+                    <!-- Added max-width: 100% to the file input -->
+                    <input type="file" name="csv_file" accept=".csv" required style="margin-bottom:15px; display:block; max-width: 100%;">
                     <button type="submit" class="btn">Process CSV Upload</button>
                 </form>
             </div>
@@ -308,7 +310,8 @@
             <div class="card">
                 <h2>Categories</h2>
                 <div class="table-responsive">
-                    <table>
+                    <!-- Overwrote the global min-width of 600px so this fits on mobile screens -->
+                    <table style="min-width: 100%;">
                         <thead>
                             <tr>
                                 <th>Name</th>
