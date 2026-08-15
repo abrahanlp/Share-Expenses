@@ -1,6 +1,54 @@
 <?php
 // config.php
 $db_file = __DIR__ . '/app_data.db';
+$backup_dir = __DIR__ . '/backups';
+
+// Create the secure backups folder if it doesn't exist
+if (!is_dir($backup_dir)) {
+    mkdir($backup_dir, 0755, true);
+    // Block web access to the backups folder for security
+    file_put_contents($backup_dir . '/.htaccess', "Deny from all");
+}
+
+// Check if a backup is needed (older than 7 days)
+$needs_backup = true;
+$backup_files = glob($backup_dir . '/*.db');
+
+if (!empty($backup_files)) {
+    $latest_backup_time = 0;
+    foreach ($backup_files as $file) {
+        $mtime = filemtime($file);
+        if ($mtime > $latest_backup_time) {
+            $latest_backup_time = $mtime;
+        }
+    }
+    
+    // 604800 seconds = 7 days
+    if ((time() - $latest_backup_time) < 604800) {
+        $needs_backup = false;
+    }
+}
+
+// Perform the backup silently
+if ($needs_backup && file_exists($db_file)) {
+    $backup_name = $backup_dir . '/backup_' . date('Y-m-d_H-i') . '.db';
+    copy($db_file, $backup_name);
+    
+    // Auto-Cleanup: Keep only the 8 most recent backups
+    $all_backups = glob($backup_dir . '/*.db');
+    if (count($all_backups) > 8) {
+        // Sort files by oldest first
+        usort($all_backups, function($a, $b) {
+            return filemtime($a) - filemtime($b);
+        });
+        
+        // Delete the oldest files until only 8 remain
+        $files_to_delete = count($all_backups) - 8;
+        for ($i = 0; $i < $files_to_delete; $i++) {
+            unlink($all_backups[$i]);
+        }
+    }
+}
 
 $db = new SQLite3($db_file);
 
