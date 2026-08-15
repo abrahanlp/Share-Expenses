@@ -29,6 +29,11 @@ This application is designed to be as "plug-and-play" as possible, requiring no 
     *   **Default Password:** `admin`
 5.  **Secure Your App:** Once logged in, go immediately to the **Settings** tab and change the master application credentials.
 
+### Backups
+After the first visit with a database (`.db`) file available a backup will be created under `./backups` path.
+Backup database will have next name format: `backup_YYYY-MM-DD_HH-mm.db`, for restoring certain database, copy it to the root path and rename it to `app_data.db`.
+Two months backups will be keep under `./backups` folder, previous backups will be automatically deleted.
+To keeping any database backup copy it to another folder or remove the `.db` pattern from the file name.
 
 ## 📖 Brief User Manual
 
