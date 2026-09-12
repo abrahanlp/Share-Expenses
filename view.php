@@ -54,6 +54,11 @@
                         <input type="hidden" name="action" value="save_expense">
                         <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($effective_start_date); ?>">
                         <input type="hidden" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>">
+                        <input type="hidden" name="concept" value="<?php echo htmlspecialchars($_REQUEST['concept'] ?? ''); ?>">
+                        <input type="hidden" name="category" value="<?php echo htmlspecialchars($_REQUEST['category'] ?? ''); ?>">
+                        <input type="hidden" name="payer" value="<?php echo htmlspecialchars($_REQUEST['payer'] ?? ''); ?>">
+                        <input type="hidden" name="amount_min" value="<?php echo htmlspecialchars($_REQUEST['amount_min'] ?? ''); ?>">
+                        <input type="hidden" name="amount_max" value="<?php echo htmlspecialchars($_REQUEST['amount_max'] ?? ''); ?>">
                         
                         <?php if($expense_to_edit): ?>
                             <input type="hidden" name="id" value="<?php echo $expense_to_edit['id']; ?>">
@@ -117,30 +122,79 @@
         </div>
 
         <div class="card">
-            <!-- Filter Form -->
             <form id="filterForm" method="GET" action="index.php" class="filter-form">
-                <strong class="filter-label">Date Range:</strong>
-                
-                <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control auto-width" onchange="this.form.submit()">
-                <span class="text-muted">to</span>
-                <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control auto-width" onchange="this.form.submit()">
-                
-                <select id="quick_ranges" onchange="applyQuickRange()" class="form-control auto-width" style="cursor: pointer;">
-                    <option value="">Custom...</option>
-                    <option value="this_month">This month</option>
-                    <option value="last_6_months">Last 6 months</option>
-                    <option value="last_year">Last year</option>
-                    <?php 
-                    if (isset($available_years)) {
-                        foreach($available_years as $year): 
-                    ?>
-                        <option value="<?php echo htmlspecialchars($year); ?>"><?php echo htmlspecialchars($year); ?></option>
-                    <?php 
-                        endforeach; 
-                    }
-                    ?>
-                    <option value="all" <?php echo (isset($_GET['start_date']) && $_GET['start_date'] === 'all') ? 'selected' : ''; ?>>All times</option>
-                </select>
+                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:12px;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="date" id="start_date" name="start_date" value="<?php echo htmlspecialchars($start_date); ?>" class="form-control auto-width">
+                            <span class="text-muted">to</span>
+                            <input type="date" id="end_date" name="end_date" value="<?php echo htmlspecialchars($end_date); ?>" class="form-control auto-width">
+                        </div>
+                    </div>
+
+                    <div>
+                        <select id="quick_ranges" onchange="applyQuickRange()" class="form-control auto-width" style="cursor: pointer;">
+                            <option value="">Range</option>
+                            <option value="this_month">This month</option>
+                            <option value="last_6_months">Last 6 months</option>
+                            <option value="last_year">Last year</option>
+                            <?php 
+                            if (isset($available_years)) {
+                                foreach($available_years as $year): 
+                            ?>
+                                <option value="<?php echo htmlspecialchars($year); ?>"><?php echo htmlspecialchars($year); ?></option>
+                            <?php 
+                                endforeach; 
+                            }
+                            ?>
+                            <option value="all" <?php echo (isset($_GET['start_date']) && $_GET['start_date'] === 'all') ? 'selected' : ''; ?>>All times</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-bottom:12px;">
+                    <div>
+                        <input type="text" id="concept" name="concept" value="<?php echo htmlspecialchars($_REQUEST['concept'] ?? ''); ?>" class="form-control auto-width" placeholder="Search concept">
+                    </div>
+
+                    <div>
+                        <select id="category" name="category" class="form-control auto-width">
+                            <option value="">All categories</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo htmlspecialchars($cat['name']); ?>" <?php echo (($_REQUEST['category'] ?? '') === $cat['name']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($cat['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div>
+                        <select id="payer" name="payer" class="form-control auto-width">
+                            <option value="">All payers</option>
+                            <?php foreach ($users as $p): ?>
+                                <option value="<?php echo htmlspecialchars($p); ?>" <?php echo (($_REQUEST['payer'] ?? '') === $p) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($p); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+                    <div>
+                        <label class="filter-label" for="amount_min">From</label>
+                        <input type="number" id="amount_min" name="amount_min" value="<?php echo htmlspecialchars($_REQUEST['amount_min'] ?? ''); ?>" class="form-control auto-width" min="0" step="0.01" placeholder="0.00 €">
+                    </div>
+
+                    <div>
+                        <label class="filter-label" for="amount_max">to</label>
+                        <input type="number" id="amount_max" name="amount_max" value="<?php echo htmlspecialchars($_REQUEST['amount_max'] ?? ''); ?>" class="form-control auto-width" min="0" step="0.01" placeholder="50.00 €">
+                    </div>
+
+                    <div>
+                        <a href="index.php?page=home" class="cancel-link">Reset</a>
+                    </div>
+                </div>
             </form>
 
             <div class="table-container">
@@ -165,8 +219,8 @@
                                 <td><strong><?php echo htmlspecialchars($e['paid_by']); ?></strong></td>
                                 <td><strong><?php echo number_format($e['amount'], 2); ?> €</strong></td>
                                 <td class="actions">
-                                    <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="edit-link">Edit</a>
-                                    <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
+                                    <a href="?edit=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>&concept=<?php echo urlencode($_REQUEST['concept'] ?? ''); ?>&category=<?php echo urlencode($_REQUEST['category'] ?? ''); ?>&payer=<?php echo urlencode($_REQUEST['payer'] ?? ''); ?>&amount_min=<?php echo urlencode($_REQUEST['amount_min'] ?? ''); ?>&amount_max=<?php echo urlencode($_REQUEST['amount_max'] ?? ''); ?>" class="edit-link">Edit</a>
+                                    <a href="?delete=<?php echo $e['id']; ?>&start_date=<?php echo urlencode($effective_start_date); ?>&end_date=<?php echo urlencode($end_date); ?>&concept=<?php echo urlencode($_REQUEST['concept'] ?? ''); ?>&category=<?php echo urlencode($_REQUEST['category'] ?? ''); ?>&payer=<?php echo urlencode($_REQUEST['payer'] ?? ''); ?>&amount_min=<?php echo urlencode($_REQUEST['amount_min'] ?? ''); ?>&amount_max=<?php echo urlencode($_REQUEST['amount_max'] ?? ''); ?>" class="del-link" onclick="return confirm('Delete this expense?');">Delete</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -177,6 +231,71 @@
         </div>
 
         <script>
+            const filterForm = document.getElementById('filterForm');
+            if (filterForm) {
+                const scrollKey = 'share-expenses-filter-scroll';
+                const caretKey = 'share-expenses-filter-caret';
+                let filterTimer = null;
+
+                const restoreScrollPosition = () => {
+                    const savedScroll = sessionStorage.getItem(scrollKey);
+                    if (savedScroll !== null) {
+                        const top = Number(savedScroll);
+                        if (!Number.isNaN(top)) {
+                            requestAnimationFrame(() => {
+                                window.scrollTo({ top, behavior: 'auto' });
+                            });
+                        }
+                    }
+                };
+
+                const restoreCaretPosition = () => {
+                    const fieldId = sessionStorage.getItem(caretKey);
+                    if (!fieldId) return;
+
+                    const activeField = document.getElementById(fieldId);
+                    if (!activeField) return;
+
+                    requestAnimationFrame(() => {
+                        activeField.focus();
+                        const length = activeField.value.length;
+                        if (activeField.setSelectionRange) {
+                            activeField.setSelectionRange(length, length);
+                        }
+                    });
+                };
+
+                const submitFilterForm = (event) => {
+                    const field = event && event.target ? event.target : null;
+                    if (field && (field.tagName === 'INPUT' || field.tagName === 'SELECT')) {
+                        sessionStorage.setItem(caretKey, field.id || field.name || '');
+                    }
+
+                    clearTimeout(filterTimer);
+                    filterTimer = setTimeout(() => {
+                        sessionStorage.setItem(scrollKey, String(window.scrollY || window.pageYOffset || 0));
+                        filterForm.submit();
+                    }, 1000);
+                };
+
+                filterForm.addEventListener('submit', () => {
+                    sessionStorage.setItem(scrollKey, String(window.scrollY || window.pageYOffset || 0));
+                });
+
+                window.addEventListener('load', () => {
+                    restoreScrollPosition();
+                    restoreCaretPosition();
+                });
+
+                filterForm.querySelectorAll('input, select').forEach((field) => {
+                    field.addEventListener('input', submitFilterForm);
+                    field.addEventListener('change', submitFilterForm);
+                    field.addEventListener('focus', () => {
+                        sessionStorage.setItem(caretKey, field.id || field.name || '');
+                    });
+                });
+            }
+
             // Date Filter Logic
             function applyQuickRange() {
                 const range = document.getElementById('quick_ranges').value;

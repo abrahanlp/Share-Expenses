@@ -45,6 +45,19 @@ if ($raw_start === 'all') {
     $ed_param = '&end_date=' . urlencode($end_date);
 }
 
+$filter_concept = trim($_REQUEST['concept'] ?? '');
+$filter_category = trim($_REQUEST['category'] ?? '');
+$filter_payer = trim($_REQUEST['payer'] ?? '');
+$filter_amount_min = trim($_REQUEST['amount_min'] ?? '');
+$filter_amount_max = trim($_REQUEST['amount_max'] ?? '');
+
+$filter_query = '';
+if ($filter_concept !== '') $filter_query .= '&concept=' . urlencode($filter_concept);
+if ($filter_category !== '') $filter_query .= '&category=' . urlencode($filter_category);
+if ($filter_payer !== '') $filter_query .= '&payer=' . urlencode($filter_payer);
+if ($filter_amount_min !== '') $filter_query .= '&amount_min=' . urlencode($filter_amount_min);
+if ($filter_amount_max !== '') $filter_query .= '&amount_max=' . urlencode($filter_amount_max);
+
 // Ensure the end date includes the whole day up to midnight
 $end_date_query = $end_date . ' 23:59:59';
 
@@ -146,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindValue(':paid_by', $paid_by, SQLITE3_TEXT);
             $stmt->execute();
             
-            header("Location: index.php?page=home" . $sd_param . $ed_param);
+            header("Location: index.php?page=home" . $sd_param . $ed_param . $filter_query);
             exit;
         } else {
             $message = "<div class='alert error'>Invalid data provided.</div>";
@@ -255,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
     $db->exec("DELETE FROM expenses WHERE id = $id");
-    header("Location: index.php?page=home" . $sd_param . $ed_param);
+    header("Location: index.php?page=home" . $sd_param . $ed_param . $filter_query);
     exit;
 }
 
@@ -299,10 +312,47 @@ if ($page === 'home') {
         $balance_text = "0.00€";
     }
 
-    // 2. FILTERED DATA FOR GRAPH & TABLE (Dependent of date filter)
-    $stmt_cat = $db->prepare('SELECT category, SUM(amount) as total FROM expenses WHERE "date" >= :start_date AND "date" <= :end_date GROUP BY category ORDER BY total DESC');
-    $stmt_cat->bindValue(':start_date', $start_date, SQLITE3_TEXT);
-    $stmt_cat->bindValue(':end_date', $end_date_query, SQLITE3_TEXT);
+    // 2. FILTERED DATA FOR GRAPH & TABLE (Dependent on all selected filters)
+    $where_clauses = [
+        '"date" >= :start_date',
+        '"date" <= :end_date'
+    ];
+    $bind_values = [
+        ':start_date' => $start_date,
+        ':end_date' => $end_date_query,
+    ];
+
+    if ($filter_concept !== '') {
+        $where_clauses[] = 'LOWER(concept) LIKE LOWER(:concept)';
+        $bind_values[':concept'] = '%' . $filter_concept . '%';
+    }
+
+    if ($filter_category !== '') {
+        $where_clauses[] = 'category = :category';
+        $bind_values[':category'] = $filter_category;
+    }
+
+    if ($filter_payer !== '') {
+        $where_clauses[] = 'paid_by = :payer';
+        $bind_values[':payer'] = $filter_payer;
+    }
+
+    if ($filter_amount_min !== '') {
+        $where_clauses[] = 'amount >= :amount_min';
+        $bind_values[':amount_min'] = (float) $filter_amount_min;
+    }
+
+    if ($filter_amount_max !== '') {
+        $where_clauses[] = 'amount <= :amount_max';
+        $bind_values[':amount_max'] = (float) $filter_amount_max;
+    }
+
+    $where_sql = implode(' AND ', $where_clauses);
+
+    $stmt_cat = $db->prepare('SELECT category, SUM(amount) as total FROM expenses WHERE ' . $where_sql . ' GROUP BY category ORDER BY total DESC');
+    foreach ($bind_values as $key => $value) {
+        $stmt_cat->bindValue($key, $value, SQLITE3_TEXT);
+    }
     $res_cat = $stmt_cat->execute();
     
     $chart_categories = [];
@@ -310,9 +360,10 @@ if ($page === 'home') {
         $chart_categories[$row['category']] = round($row['total'], 2); 
     }
 
-    $stmt_recent = $db->prepare('SELECT * FROM expenses WHERE "date" >= :start_date AND "date" <= :end_date ORDER BY "date" DESC, id DESC');
-    $stmt_recent->bindValue(':start_date', $start_date, SQLITE3_TEXT);
-    $stmt_recent->bindValue(':end_date', $end_date_query, SQLITE3_TEXT);
+    $stmt_recent = $db->prepare('SELECT * FROM expenses WHERE ' . $where_sql . ' ORDER BY "date" DESC, id DESC');
+    foreach ($bind_values as $key => $value) {
+        $stmt_recent->bindValue($key, $value, SQLITE3_TEXT);
+    }
     $recent_expenses = $stmt_recent->execute();
 
 } elseif ($page === 'statistics') {
