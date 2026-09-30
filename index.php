@@ -45,11 +45,11 @@ if ($raw_start === 'all') {
     $ed_param = '&end_date=' . urlencode($end_date);
 }
 
-$filter_concept = trim($_REQUEST['concept'] ?? '');
-$filter_category = trim($_REQUEST['category'] ?? '');
-$filter_payer = trim($_REQUEST['payer'] ?? '');
-$filter_amount_min = trim($_REQUEST['amount_min'] ?? '');
-$filter_amount_max = trim($_REQUEST['amount_max'] ?? '');
+$filter_concept = trim($_GET['concept'] ?? '');
+$filter_category = trim($_GET['category'] ?? '');
+$filter_payer = trim($_GET['payer'] ?? '');
+$filter_amount_min = trim($_GET['amount_min'] ?? '');
+$filter_amount_max = trim($_GET['amount_max'] ?? '');
 
 $filter_query = '';
 if ($filter_concept !== '') $filter_query .= '&concept=' . urlencode($filter_concept);
